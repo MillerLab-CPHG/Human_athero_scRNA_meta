@@ -327,6 +327,76 @@ plot_cors = function(cors_df, target_gene, target_cells, genes_to_label) {
 }
 
 
+# This function will plot normalized expression values across pseudotime
+# Args cds_ordered: A monocle3 cds object with cells ordered across pseudotime
+# Args cell annotations: A vector with cell types of interest for plotting gene expression
+# Args genes: A vector with the genes to be plotted across pseudotime
+# Args facet_wrap_plot: A boolean indicating whether all genes shoud be shown in one or multiple plots
+# Value: A ggplot object with one or multiple panels showing gene expression across pseudotime values. 
+plot_expression_on_pseudotime = function(cds_ordered, cell_annotations, genes,
+                                         facet_wrap_plot=FALSE,
+                                         pseudotime_boundary = 30) { 
+  
+  # Create subset of the main cds object to contain only cell type annotations
+  # and genes for plotting along pseudotime. 
+  cds_subset = cds_ordered[rowData(cds_ordered)$gene_short_name %in% genes,
+                           colData(cds_ordered)$prelim_annotations %in% cell_annotations]
+  
+  # Create df of subset for gene expression across pseudotime plotting
+  cds_exprs = SingleCellExperiment::counts(cds_subset)
+  cds_exprs = Matrix::t(Matrix::t(cds_exprs))
+  cds_exprs = reshape2::melt(round(as.matrix(cds_exprs)))
+  colnames(cds_exprs) = c("Feature_id", "Cell", "Norm_expression")
+  
+  # Add pseudotime values for each cell
+  pseudotime = pseudotime(cds_subset)
+  cds_exprs$pseudotime = pseudotime[match(cds_exprs$Cell, 
+                                          names(pseudotime))]
+  
+  # Add annotations (column name of the annotations is fixed
+  # for the smc_rpca_sct_v3 subset)
+  annotations = colData(cds_subset)$prelim_annotations
+  names(annotations) = rownames(colData(cds_subset))
+  cds_exprs$annotations = annotations[match(cds_exprs$Cell, 
+                                            names(annotations))]
+  
+  # Order panels according to order of genes provided
+  cds_exprs$Feature_id = factor(cds_exprs$Feature_id,
+                                levels = genes)
+  
+  # Fit a cubic spline to normalized expression values across pseudotime
+  p =  ggplot(cds_exprs, aes(pseudotime, Norm_expression, fill=Feature_id)) + 
+    geom_smooth(method = "lm", formula = y ~ splines::ns(x, 3), 
+                color="black") 
+  p = p + 
+    xlim(0, pseudotime_boundary) + 
+    scale_y_log10() + 
+    ylab("SCTransform norm expression") + 
+    theme_bw() + 
+    theme(aspect.ratio = 1,
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text = element_text(size = 12),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size = 12)) +
+    npg_scale_bars
+  
+  # If we want to plot genes on different panels
+  if (facet_wrap_plot) { 
+    p = p + 
+      facet_wrap(~Feature_id, scales = "free_y") + 
+      theme(legend.position = "none",
+            strip.background = element_rect(fill="azure3"))
+    return(p)
+  }
+  return(p)
+}
+
+
+
+
+
+
 ##################################################
 # gProfiler2 and other plotting helper functions #
 ##################################################
