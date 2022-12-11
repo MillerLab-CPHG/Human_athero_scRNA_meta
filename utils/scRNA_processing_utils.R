@@ -322,6 +322,7 @@ plot_cors = function(cors_df, target_gene, target_cells, genes_to_label) {
     scale_x_continuous(limits=c(0,20000)) +
     theme(aspect.ratio = 1, 
           panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
           legend.title = element_text(face="italic", size=20))
   #legend.position = "bottom")
 }
