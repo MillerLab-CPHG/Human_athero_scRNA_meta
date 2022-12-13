@@ -29,9 +29,9 @@ rpca_smc_fibro_metadata = rpca_smc_fibro_subset_v3@meta.data
 
 # Define cell types and target genes for correlations
 cell_types = c("Contractile_SMC", "Fibrochondrocyte")
-genes_of_interest = c("MYH11", "CNN1", "TAGLN", "LMOD1", "TPM2", "ACTA2", "PCOLCE2", "OMD",
-                      "IBSP", "COMP", "LUM", "DCN", "VCAM1", "KLF4", "MGP",
-                      "SERPINE2", "CYTL1", "SOX9")
+genes_of_interest = c("MYH11", "CNN1", "TAGLN", "LMOD1", "TPM2", "ACTA2", "OMD", 
+                      "IBSP", "COMP", "LUM", "DCN", "VCAM1", "MGP",
+                      "SERPINE2", "CYTL1", "SOX9","TIMP1")
 
 
 # Calculate correlations for CRTAC1
@@ -50,13 +50,13 @@ crtac1_cors_plot = plot_cors(smc_fibrochondro_crtac1, "CRTAC1", "SMCs and Fibroc
   custom_theme +
   ggtitle("") + 
   theme(aspect.ratio = 1.5)
-ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure4/Fig4e_CRTAC1_pearson_cors.pdf",
-       plot = crtac1_cors_plot, width = 6, height = 8)
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure4/Fig4e_CRTAC1_pearson_cors_new.pdf",
+       plot = crtac1_cors_plot, width = 5, height = 7)
 
 # Calculate correlations for LTBP1 in SMCs and Fibromyocytes 
 cell_types = c("Contractile_SMC", "Fibromyocyte")
-genes_of_interest = c("MYH11", "CNN1", "TAGLN", "TPM2", "SMTN", "ACTA2", "TNFRSF11B", "FN1", 
-                      "LUM", "DCN", "VCAM1", "AEBP1", "MGP", "BGN", "VCAN")
+genes_of_interest = c("MYH11", "CNN1", "TAGLN", "TPM2", "LMOD1","SMTN", "ACTA2", "TNFRSF11B", "FN1", 
+                      "LUM", "DCN", "VCAM1", "AEBP1", "MGP", "BGN", "VCAN", "LTBP2")
 
 smc_fibromyo_ltbp1 = calc_gene_cors(cell_types = cell_types,
                                     exp_matrix = rpca_smc_fibrosct_counts,
@@ -70,6 +70,9 @@ ltbp1_cors_plot = plot_cors(smc_fibromyo_ltbp1, "LTBP1", "SMCs and Fibromyocytes
   custom_theme + 
   ggtitle("") + 
   theme(aspect.ratio = 1.5)
+
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure4/Fig4e_LTBP1_pearson_cors_new.pdf",
+       plot = ltbp1_cors_plot, width = 5, height = 7)
   
 
 
