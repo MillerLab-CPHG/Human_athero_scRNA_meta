@@ -225,13 +225,14 @@ res_sil_scores_plot = res_sil_scores_df %>%
   xlab("Clustering resolution") +
   ylab("Mean Silhouette score") +
   ggtitle("rPCA vs Harmony vs CCA vs Scanorama mean sil scores per clustering resolution") + 
-  scale_fill_brewer(palette = "Dark2") + 
   custom_theme + 
   npg_scale_bars + 
-  scale_fill_manual(values = c("#3C5488FF", "#E64B35FF", "#4DBBD5FF", "#00A087FF"))
+  scale_fill_manual(values = c("#3C5488FF", "#E64B35FF", "#4DBBD5FF", "#00A087FF")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
 
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure1/SuppFig1d_rPCA_Harmony_CCA_Scanorama_sil_coeffs.pdf",
-       plot = res_sil_scores_plot, width = 9, height = 9)
+       plot = res_sil_scores_plot, width = 4.5, height = 4.5)
 
 
 

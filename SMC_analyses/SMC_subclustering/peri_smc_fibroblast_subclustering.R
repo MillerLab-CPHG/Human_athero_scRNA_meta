@@ -94,14 +94,18 @@ ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_f
 
 # IBSP
 ibsp = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("IBSP"), pt.size = 0.7, order = TRUE) & new_scale3 & custom_theme
-ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_IBSP_UMAP.pdf",
-       plot = ibsp, width = 7, height = 7)
+#ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_IBSP_UMAP.pdf",
+#       plot = ibsp, width = 7, height = 7)
 
 # LTBP1
 ltbp1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("LTBP1"), pt.size = 0.7, order = TRUE) & new_scale3 & custom_theme
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_LTBP1_UMAP.pdf",
+       plot = ltbp1, width = 7, height = 7)
 
 # VCAN
 vcan = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("VCAN"), pt.size = 0.7, order=TRUE) & new_scale3 & custom_theme
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_VCAN_UMAP.pdf",
+       plot = vcan, width = 7, height = 7)
 
 # Make a dotplot for prelim cell type annotations
 smc_marker_dotplot = DotPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annotations",  features = c("MYH11", "CNN1", "TPM2", "MYL9", "ACTA2", 
@@ -312,7 +316,7 @@ prow = cowplot::plot_grid(cell_proportions + theme(legend.position = "none", axi
                           nrow = 1)
 smc_metadata_plots = cowplot::plot_grid(prow, cell_type_legend, rel_widths = c(4, .7), label_y = "Cell proportion")
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure3/SuppFig3b_SMC_metadata.pdf",
-       plot = smc_metadata_plots, width = 17, height = 7)
+       plot = smc_metadata_plots, width = 11, height = 4.5)
 
 
 
@@ -456,7 +460,7 @@ prep_terms = function(go_df, annotation) {
     mutate(log10_pval = -log10(p_value)) %>%
     mutate(annotation = annotation) %>%
     arrange(desc(log10_pval)) %>%
-    head(n=20)
+    head(n=9)
   return(filtered_terms)
 }
 
