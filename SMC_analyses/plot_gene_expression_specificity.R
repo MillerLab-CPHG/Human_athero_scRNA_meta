@@ -20,12 +20,12 @@ head(smc_peri_fibro_gene_exp)
 
 # Inspect fibrochondro markers
 smc_phenotypes = c("Contractile_SMC", "Fibromyocyte", "Fibrochondrocyte")
-fibrochondro_markers = c("MYOCD", "CNN1", "ACTA2", "RUNX2", "SOX9", "IBSP", "TNFRSF11B", "CRTAC1")
+fibrochondro_markers = c("MYOCD", "CNN1", "MYH11", "ACTA2", "RUNX2", "SOX9", "IBSP", "TNFRSF11B", "CRTAC1", "LTBP1")
 fibrochondro_markers_df = smc_peri_fibro_gene_exp[smc_peri_fibro_gene_exp$gene %in% fibrochondro_markers, ]
 fibrochondro_markers_df_melt = melt(fibrochondro_markers_df)
 fibrochondro_markers_df_melt$gene = factor(fibrochondro_markers_df_melt$gene, 
-                                           levels = c("MYOCD", "CNN1", "ACTA2", "IBSP", "RUNX2", "SOX9", 
-                                                      "TNFRSF11B", "CRTAC1"))
+                                           levels = c("MYOCD", "CNN1", "MYH11", "ACTA2", "IBSP", "RUNX2", "SOX9", 
+                                                      "TNFRSF11B", "CRTAC1", "LTBP1"))
 
 fc_markers_specificity = fibrochondro_markers_df_melt %>% 
   filter(variable %in% smc_phenotypes) %>%
