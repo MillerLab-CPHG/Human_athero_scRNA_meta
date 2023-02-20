@@ -61,9 +61,9 @@ prelim_annotations = DimPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annota
   theme(legend.position = "bottom")
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure4/Fig4b_SMC_prelim_annotations_UMAP.pdf",
        plot = prelim_annotations, width = 9, height = 9)
-DimPlot(rpca_smc_fibro_subset, group.by = "study")
-DimPlot(rpca_smc_fibro_subset, group.by = "sample")
-DimPlot(rpca_smc_fibro_subset, split.by = "sample_disease_status")
+DimPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annotations", split.by = "study") & custom_theme & npg_scale
+DimPlot(rpca_smc_fibro_subset_v3, group.by = "sample") & custom_theme & npg_scale 
+DimPlot(rpca_smc_fibro_subset_v3, split.by = "sample_disease_status")
 
 # How many cells are each study contributing
 # Alsaigh et al: 8734; Hu et al: 36073, Pan et al: 4277; wirka et al: 4864
@@ -261,7 +261,28 @@ write.table(cluster_top_markers_df, "/project/cphg-millerlab/Jose/human_scRNA_me
 
 # Load cell type markers from current annotations
 cell_type_markers = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/smc_pericytes_fibroblasts_subclustering_method1/cell_type_annotations_markers/peri_smc_fibro_prelim_anno_top100_markers.rds")
-              
+          
+
++###################################################
+# Add metadata for sex
+
+# Sex was defined based on metadata from papers and also XIST expression. 
+males = c("pan_rpe004", "pan_rpe005", "alsaigh_ac_p1", "alsaigh_pa_p1", "alsaigh_ac_p2", "alsaigh_pa_p2",
+          "alsaigh_ac_p3", "alsaigh_pa_p3", "wirka_coronary_1", "wirka_coronary_2", "wirka_coronary_3",
+          "wirka_coronary_4", "wirka_coronary_5", "wirka_coronary_6", "wirka_coronary_7", "hu_coronary1_p1", 
+          "hu_coronary1_p2", "hu_coronary2_p2")
+females = c("pan_rpe006", "wirka_coronary_8", "hu_coronary1_p3", "hu_coronary2_p3")
+
+  
+rpca_smc_fibro_subset_v3@meta.data = rpca_smc_fibro_subset_v3@meta.data %>%
+  mutate(sex = case_when(sample %in% males ~ "males",
+                         sample %in% females ~ "females"))
+rownames(rpca_smc_fibro_subset_v3@meta.data) = barcodes
+
+  
+# Check UMAP embeddings according to sex 
+DimPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annotations", split.by = "sex") & custom_theme & npg_scale
+    
 #######################
 # Make metadata plots #
 #######################

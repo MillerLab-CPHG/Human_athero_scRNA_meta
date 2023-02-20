@@ -171,6 +171,13 @@ ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_f
 DimPlot(rpca_int_sct_v3, reduction = "umap", split.by = "sample_disease_status", group.by = "level1_annotations",
         label = TRUE, repel = TRUE, pt.size = 0.1, raster = FALSE) + custom_theme
 
+# Plot level1 annotations by arterial bed
+DimPlot(rpca_int_sct_v3, reduction = "umap", group.by = "level1_annotations", split.by = "arterial_origin", 
+         label = TRUE, repel = TRUE, pt.size = 0.1, raster = FALSE) + npg_scale2 + custom_theme + 
+  theme(legend.position = "none",
+        strip.background = element_rect(fill="white"),
+        strip.text = element_text(size=14))
+
 ###############################################################
 # Visualize gene expression using SCTransform-normalized counts
 DefaultAssay(rpca_int_sct_v3) = "SCT"
@@ -421,13 +428,23 @@ coronaries = c("wirka_et_al", "hu_et_al")
 lesion = c("alsaigh_et_al", "pan_et_al", "wirka_et_al")
 non_lesion = c("hu_et_al")
 
+# Add new metadata col for sex (cells from males = 98930; cells from females = 19648) 
+# Sex was defined based on metadata from papers and also XIST expression. 
+males = c("pan_rpe004", "pan_rpe005", "alsaigh_ac_p1", "alsaigh_pa_p1", "alsaigh_ac_p2", "alsaigh_pa_p2",
+          "alsaigh_ac_p3", "alsaigh_pa_p3", "wirka_coronary_1", "wirka_coronary_2", "wirka_coronary_3",
+          "wirka_coronary_4", "wirka_coronary_5", "wirka_coronary_6", "wirka_coronary_7", "hu_coronary1_p1", 
+          "hu_coronary1_p2", "hu_coronary2_p2")
+females = c("pan_rpe006", "wirka_coronary_8", "hu_coronary1_p3", "hu_coronary2_p3")
+
 # Add new metadata cols and cell barcodes as rownames.
 # Not sure why cell barcodes are removed when we create the new variables
 new_meta_df  = metadata_df %>% 
   mutate(arterial_origin = case_when(study %in% carotids ~ "carotid",
                                      study %in% coronaries ~ "coronary"),
          sample_disease_status = case_when(study %in% lesion ~ "lesion",
-                                           study %in% non_lesion ~ "non_lesion"))
+                                           study %in% non_lesion ~ "non_lesion"),
+         sex = case_when(sample %in% males ~ "males",
+                         sample %in% females ~ "females"))
 rownames(new_meta_df) = rownames(rpca_int_sct_v3@meta.data)
 head(new_meta_df)
 
