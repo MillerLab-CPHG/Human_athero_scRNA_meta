@@ -67,7 +67,7 @@ Scripts used for the benchmark and generation of the integrated reference were i
 
 Main criteria/metrics calculated in the benchmark include:
 - Running time
-- Local Inverse Simpson Index (LISI)
+- Local Inverse Simpson Index (LISI): cLISI and iLISI
 - Silhouette scores calculated across 0.8-1.8 resolutions
 
 ### 3) Generation of harmonized scRNA reference 
