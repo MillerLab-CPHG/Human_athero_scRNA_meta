@@ -1,7 +1,13 @@
+library(Seurat)
 library(tidyverse)
 library(data.table)
 
 
+
+##########################################################################################
+# The goal of this script is to take the cell annotations from the subclustered SMCs and #
+# add them back into the main meta-analyzed scRNA reference.                             #
+##########################################################################################
 
 # How many SMC barcodes do we have in the main ref (29024)
 SMCs_main_ref = rpca_int_sct_v3@meta.data[rpca_int_sct_v3@meta.data$level1_annotations == "SMC",]
@@ -14,13 +20,14 @@ length(SMC_main_ref_barcodes)
 #                    "SMC2", "SMC3", "Foam-like")
 #SMC_subset = rpca_smc_fibro_subset_v3@meta.data[rpca_smc_fibro_subset_v3@meta.data$prelim_annotations %in% SMC_subset_anno, ]
 
+# Get barcodes from SMC subset
 SMC_subset_barcodes = rownames(rpca_smc_fibro_subset_v3@meta.data)
 length(SMC_subset_barcodes)
 
-# How many barcodes match
+# Check for any potential discrepancies
 length(setdiff(SMC_main_ref_barcodes, SMC_subset_barcodes))
 
-# Create a new vector where we we'll update the SMC annotations
+# Create a new vector where we'll update the SMC annotations
 new_level2_barcodes = rownames(rpca_int_sct_v3@meta.data)
 names(new_level2_barcodes) = rpca_int_sct_v3@meta.data$level2_annotations
 names(SMC_subset_barcodes) = rpca_smc_fibro_subset_v3$prelim_annotations
@@ -32,13 +39,15 @@ for (i in seq_len(length(new_level2_barcodes))) {
     }
 }
 
-
-# Add new annotations into metadata
-rpca_int_sct_v3@meta.data$new_level2_anno = names(new_level2_barcodes)
-DimPlot(rpca_int_sct_v3, group.by = "new_level2_anno", raster = FALSE, label = TRUE) & custom_theme & npg_scale2 + 
+# Add new annotations into metadata and visualize UMAP embeddings
+rpca_int_sct_v3@meta.data$updated_level2_annotations = names(new_level2_barcodes)
+DimPlot(rpca_int_sct_v3, group.by = "updated_level2_annotations", raster = FALSE, label = TRUE, label.size = 5,
+        repel = TRUE) & custom_theme + 
   theme(legend.position = "none")
 
-FeaturePlot(rpca_int_sct_v3, features = c("LMOD1", "MYH11", "CNN1", "ACTA2"), raster = FALSE, order = TRUE) & custom_theme & new_scale3
+
+# Check a few markers as a sanity check
+FeaturePlot(rpca_int_sct_v3, features = c("LMOD1", "MYH11", "CNN1", "VCAN", "LTBP1", "IBSP"), raster = FALSE, order = TRUE) & custom_theme & new_scale3
 
 
 

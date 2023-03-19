@@ -111,17 +111,23 @@ rpca_int_sct = IntegrateData(anchorset = rpca_sct_anchors,
 end_time_rpca = Sys.time()
 measured_time_rpca = end_time_rpca - start_time_rpca # Time difference of 53.3441 mins
 
-
+###########################################################################
+# Now that we identified integration anchors, we'll process the data for
+# downstream analyses. 
 
 # Run PCA and UMAP on integrated object (default is now integrated object)
 DefaultAssay(rpca_int_sct) = "integrated"
 
 # Run standard workflow for dimensionality reduction and clustering
-rpca_int_sct_v3 = RunPCA(rpca_int_sct_v3) # 30 dims captures really most of the variation in the data
+# 30 dims captures really most of the variation in the data
+rpca_int_sct_v3 = RunPCA(rpca_int_sct_v3) 
 rpca_int_sct_v3 = FindNeighbors(rpca_int_sct_v3, reduction = "pca", dims = 1:30, k.param = 20)
-# In general, this parameter should be 5-50. Higher values result in more global structure being preserved at the loss of detailed local structure
+
+# In general, this parameter should be 5-50. Higher values result in more global structure 
+# being preserved at the loss of detailed local structure
 # UMAP looks better with 30 n.neighbors than 20
-rpca_int_sct_v3 = RunUMAP(rpca_int_sct_v3, dims = 1:30, n.neighbors = 30, min.dist = 0.3) # Adjusting min.dist doesn't really help
+# Adjusting min.dist doesn't really help
+rpca_int_sct_v3 = RunUMAP(rpca_int_sct_v3, dims = 1:30, n.neighbors = 30, min.dist = 0.3) 
 
 # A resolution of 1 seems appropriate based on previous silhouette analysis 
  rpca_int_sct_v3 = FindClusters(rpca_int_sct_v3, resolution = 1)
@@ -133,7 +139,7 @@ DefaultAssay(rpca_int_sct_v3) = "integrated"
 # Set clusters to latest version of clustering resolutio; res=1
 Idents(rpca_int_sct_v3) = "integrated_snn_res.1"
 
-# Visualization of clusters and other metadata
+# Visualization of clusters and other variables defined within metadata
 p1_rpca = DimPlot(rpca_int_sct_v3, reduction = "umap", group.by = "sample", pt.size = 0.1, raster = FALSE) + ggtitle("rPCA Alsaigh/Pan/Wirka/Hu samples") + custom_theme
 p2_rpca = DimPlot(rpca_int_sct_v3, reduction = "umap", group.by = "study", pt.size = 0.1, raster = FALSE) + ggtitle("rPCA Alsaigh/Pan/Wirka/Hu study") + custom_theme + npg_scale
 p3_rpca = DimPlot(rpca_int_sct_v3, reduction = "umap", group.by = "level1_annotations", label = FALSE, repel = TRUE, label.size = 5, 
@@ -477,7 +483,7 @@ new_meta_df = metadata_df %>%
                                         integrated_snn_res.1 %in% c(9) & TS_vasc_predicted_id == "fibroblast" ~ "Fibroblast",
                                         integrated_snn_res.1 %in% c(9) & TS_vasc_predicted_id == "pericyte cell" ~ "SMC",
                                         integrated_snn_res.1 %in% c(9) & TS_vasc_predicted_id == "t cell" ~ "SMC"))
-#rownames(new_meta_df) = rownames(rpca_int_sct_v3@meta.data)
+rownames(new_meta_df) = rownames(rpca_int_sct_v3@meta.data)
 rpca_int_sct_v3@meta.data = new_meta_df
 
 # Refactor level 1 annotations to make SMCs stand out more 
@@ -487,6 +493,11 @@ rpca_int_sct_v3@meta.data$level1_annotations = factor(rpca_int_sct_v3@meta.data$
                                                                             "Plasma_cell", "pDC", "T_NK"))
 rpca_int_sct_v3@meta.data$study = factor(rpca_int_sct_v3@meta.data$study,
                                          levels = c("alsaigh_et_al", "pan_et_al", "wirka_et_al", "hu_et_al"))
+
+# Check how many variables we currently have within the metadata: 27
+# Available patient metadata variables: arterial_origin, sample_disease_status, sex. 
+length(names(rpca_smc_fibro_subset_v3@meta.data))
+
 
 ################################################
 # Add cell type labels predicted by celltypist #

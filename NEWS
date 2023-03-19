@@ -1,0 +1,11 @@
+# Change log
+All minor and major version changes for this project will be documented in this file. 
+
+## [3.0] -- 2022-07
+  - Removed remaining UMAP artifacts and doublets for reclustering 
+  - Added subtype labels (level 2 annotations)
+
+## [3.1] --2023-03-19
+  - Mapped SMC subtype annotations back into the main meta-analyzed reference
+  - Added sex variable into reference metadata
+  - Normalized data using log normalization and stored these counts in RNA assay (these will be used for tasks like label transfer to snATAC-seq clusters)  
