@@ -39,5 +39,11 @@ FeaturePlot(rpca_int_sct_v3_1, features = c("LMOD1", "MYH11", "CNN1",
 
 # Save rds object for rpca_int_sct v3.1
 saveRDS(rpca_int_sct_v3_1, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/seurat_objects/alsaigh_pan_wirka_hu_int_seurat_clustered_v3_1.rds")
+rpca_int_sct_v3_1 = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/seurat_objects/alsaigh_pan_wirka_hu_int_seurat_clustered_v3_1.rds")
+
+
+
+
+
 
 

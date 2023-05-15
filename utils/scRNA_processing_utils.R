@@ -5,6 +5,7 @@ library(RColorBrewer)
 library(GOSemSim)
 library(ggsci)
 
+
 # This script will contain several functions to stremaline scRNA datasets processing
 # including removal of doublets/ambient mRNA, SCT normalization and UMAP embeddings. 
 
@@ -176,7 +177,8 @@ calc_sil_scores = function(seurat_obj, distance_matrix) {
   # Calculate distance matrix from seurat obj reduced dims embedding 
   #dist_matrix = dist(x = Seurat::Embeddings(object = seurat_obj[[reduced_dims]])[, 1:30])
   clusters = seurat_obj$seurat_clusters
-  sil = silhouette(x = as.numeric(x = as.factor(x = clusters)), dist = distance_matrix)
+  sil = silhouette(x = as.numeric(x = as.factor(x = clusters)), 
+                   dist = distance_matrix)
   # Add silhouette scores back into seurat obj metadata
   #seurat_obj$silhouette_score = sil[, 3]
   sil_df = data.frame(cluster=sil[, 1],
@@ -458,7 +460,7 @@ gprofiler_go_simplify = function(gprofiler_res_df, cutoff=0.7, select_fun=min,
     }
   } else {
     if (ontology != semData@ont) {
-      msg <- paste("semData is for", semData@ont, "ontology, while enrichment result is for", ontology)
+      msg = paste("semData is for", semData@ont, "ontology, while enrichment result is for", ontology)
       stop(msg)
     }
   }
@@ -469,7 +471,7 @@ gprofiler_go_simplify = function(gprofiler_res_df, cutoff=0.7, select_fun=min,
                combine=NULL)
   
   ## to satisfy codetools for calling gather
-  go1 = go2 <- similarity <- NULL
+  go1 = go2 = similarity <- NULL
   
   sim.df = as.data.frame(sim)
   sim.df$go1 = row.names(sim.df)
@@ -500,6 +502,44 @@ gprofiler_go_simplify = function(gprofiler_res_df, cutoff=0.7, select_fun=min,
   
   #res[!res$ID %in% GO_to_remove, ]
   return(GO_to_remove)
+}
+
+
+# Write a function that takes a seurat object as input and 
+# produces a list of gene expression plots 
+# Write a function to generate feature plots and store them within a list
+# Args seurat_object A seurat object with normalized expression values
+# Args genes_of_interest A character vector with the names of the genes to be included in the list
+# Args pt.size A numeric indicating the size of the points for each plot. Default value is 0.1 but can be changed. 
+# Value A list of ggplot objects, one for each of the genes included in the character vector
+# What if we want to split plots by a variable like disease status
+seurat_gene_plot_list = function(seurat_object, assay="SCT", 
+                                 genes_of_interest,
+                                 split_by_var=NULL,
+                                 pt.size=0.1) {
+  # If we want to visualize log-normalized expression set default assay to RNA
+  if (assay=="RNA") {
+    DefaultAssay(seurat_object) = "RNA"
+  } else {
+    DefaultAssay(seurat_object) = assay
+  }
+  plot_list = list()
+  if (!is.null(split_by_var)) { 
+    gene_plots = lapply(genes_of_interest,
+                        function(x){FeaturePlot(seurat_object, 
+                                                features = x, pt.size = pt.size,
+                                                split.by = split_by_var,
+                                                raster = FALSE, 
+                                                order = TRUE)} & custom_theme & new_scale3)
+  } else {
+    gene_plots = lapply(genes_of_interest,
+                      function(x){FeaturePlot(seurat_object, 
+                        features = x, pt.size = pt.size,
+                        raster = FALSE, 
+                        order = TRUE)} & custom_theme & new_scale3)
+  }
+  names(gene_plots) = genes_of_interest
+  return(gene_plots)
 }
 
 

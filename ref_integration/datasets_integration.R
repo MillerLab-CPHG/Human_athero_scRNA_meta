@@ -130,7 +130,7 @@ rpca_int_sct_v3 = FindNeighbors(rpca_int_sct_v3, reduction = "pca", dims = 1:30,
 rpca_int_sct_v3 = RunUMAP(rpca_int_sct_v3, dims = 1:30, n.neighbors = 30, min.dist = 0.3) 
 
 # A resolution of 1 seems appropriate based on previous silhouette analysis 
- rpca_int_sct_v3 = FindClusters(rpca_int_sct_v3, resolution = 1)
+rpca_int_sct_v3 = FindClusters(rpca_int_sct_v3, resolution = 1)
 saveRDS(rpca_int_sct, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int_seurat_clustered.rds")
 
 rpca_int_sct_v3 = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/seurat_objects/alsaigh_pan_wirka_hu_int_seurat_annotated_v3.rds")
