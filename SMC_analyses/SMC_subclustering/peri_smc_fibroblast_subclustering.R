@@ -1,5 +1,4 @@
 library(Seurat)
-library(harmony)
 library(tidyverse)
 library(data.table)
 library(cluster)
@@ -13,7 +12,7 @@ library(gprofiler2)
 set.seed(1)
 
 # Source our own scRNA analysis utils functions
-source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
+#source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
 
 ################################################################################################
 # This script contains code for subclustering of SMCs, pericytes and fibroblasts, in addition  #

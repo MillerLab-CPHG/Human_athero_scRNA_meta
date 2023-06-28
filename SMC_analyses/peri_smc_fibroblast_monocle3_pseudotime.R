@@ -1,17 +1,19 @@
 library(Seurat)
+library(scRNAutils)
 library(tidyverse)
 library(data.table)
-library(cluster)
 library(RColorBrewer)
 library(parallel)
 library(monocle3)
+library(pheatmap)
+library(ggrepel)
 library(ggsci)
 
 # Set seed for reproducibility
 set.seed(1)
 
 # Source our own scRNA analysis utils functions
-source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
+#source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
 
 
 
@@ -25,10 +27,10 @@ source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/s
 
 # Read subclustered seurat object
 rpca_smc_fibro_subset_v3 = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/smc_pericytes_fibroblasts_subclustering_method1/seurat_objects/whole_ref_v3/peri_smc_fibro_subset_seurat_obj_res0.9_v1.rds")
-DefaultAssay(rpca_smc_fibro_subset_v3) = "integrated"
+DefaultAssay(rpca_smc_fibro_subset_v3) = "SCT"
 
 # Further subset to keep only SMCs
-rpca_smc_subset_v3 = subset(rpca_smc_fibro_subset_v3, idents = c(5, 2, 16, 4, 0 ,9, 6, 13, 15, 17))
+rpca_smc_subset_v3 = subset(rpca_smc_fibro_subset_v3, idents = c(5, 2, 16, 4, 0 ,9, 6, 13, 17))
 
 # Extract SCT counts sparse matrix
 sct_counts = rpca_smc_subset_v3@assays$SCT@counts
@@ -69,11 +71,11 @@ cds@int_colData@listData$reducedDims$UMAP = rpca_smc_subset_v3@reductions$umap@c
 
 # Plot cells using seurat extracted PCA and UMAP embeddings
 monocle3::plot_cells(cds = cds, color_cells_by = "prelim_annotations", cell_size = 0.7, 
-                     show_trajectory_graph = FALSE) + custom_theme +
+                     show_trajectory_graph = FALSE) + custom_theme() +
   theme(legend.position = "bottom")
 monocle3::plot_cells(cds = cds, genes = c("CNN1", "FN1", "CLU", "TNFRSF11B"), cell_size = 0.5, 
                      show_trajectory_graph = FALSE, 
-                     norm_method = "log") + custom_theme & new_scale
+                     norm_method = "log") + custom_theme() & new_scale
 
 # We already have clusters information from the subset Seurat object
 # Extract cluster IDs from seurat object (metadata from seurat object is stored in cds@colData)
@@ -85,7 +87,9 @@ cds@clusters$UMAP_so$clusters = seurat_clusters
 
 # Run cluster_cells so that we can get the partitions required for building the pseudotime trajectory.
 # Monocle3 clusters are located at cds@clusters$UMAP. Might be handy to store both monocle and Seurat cluster IDs. 
-cds = monocle3::cluster_cells(cds, reduction_method = "UMAP", cluster_method = "leiden", resolution = 1e-4)
+cds = monocle3::cluster_cells(cds, reduction_method = "UMAP", 
+                              cluster_method = "leiden", 
+                              resolution = 1e-4)
 
 # Replace monocle clusters by Seurat clusters
 cds@clusters$UMAP$clusters = seurat_clusters
@@ -97,12 +101,20 @@ colnames(cds@int_colData@listData$reducedDims$UMAP) = NULL
 # Visualize cells according to Monocle clusters/partitions and Seurat clusters.
 # There should be only 1 partition since one trajectory is drawn for each partition. 
 # When you are learning trajectories, each partition will eventually become a separate trajectory.
-plot_cells(cds, color_cells_by = "partition", group_cells_by = "partition", show_trajectory_graph = FALSE, 
-           label_groups_by_cluster = TRUE, labels_per_group = 1, cell_size = 0.7) + custom_theme
-plot_cells(cds, color_cells_by = "cluster", show_trajectory_graph = FALSE, cell_size = 0.7) + custom_theme
-plot_cells(cds, color_cells_by = "seurat_clusters", show_trajectory_graph = FALSE, 
+plot_cells(cds, color_cells_by = "partition", 
+           group_cells_by = "partition", 
+           show_trajectory_graph = FALSE, 
+           label_groups_by_cluster = TRUE, 
+           labels_per_group = 1, 
+           cell_size = 0.7) + custom_theme()
+plot_cells(cds, color_cells_by = "cluster", 
+           show_trajectory_graph = FALSE, 
+           cell_size = 0.7) + custom_theme
+plot_cells(cds, color_cells_by = "seurat_clusters", 
+           show_trajectory_graph = FALSE, 
            label_groups_by_cluster = TRUE, labels_per_group = 1, 
-           label_cell_groups = FALSE, cell_size = 0.7) + custom_theme
+           label_cell_groups = FALSE, 
+           cell_size = 0.7) + custom_theme()
 
 ##############################
 # Learn the trajectory graph #
@@ -116,42 +128,67 @@ plot_cells(cds = cds_ordered, color_cells_by = "cluster", label_branch_points = 
            label_leaves = FALSE,
            label_principal_points = TRUE,
            label_groups_by_cluster = FALSE,
-           cell_size = 0.7) + custom_theme
+           cell_size = 0.7) + custom_theme()
 
 # Select root cells and order according to pseudotime
-#cds_ordered = order_cells(cds, root_pr_nodes = c("Y_190", "Y_68", "Y_235", "Y_276"))
+# We're defining cells with the higghest MYH11 expression as the root of
+# the trajectory
 cds_ordered = order_cells(cds_ordered, root_pr_nodes = c("Y_86"))
 
-
 # Plot cells according to calculated pseudotime 
-plot_cells(cds = cds_ordered, color_cells_by = "pseudotime", label_branch_points = FALSE, 
+plot_cells(cds = cds_ordered, color_cells_by = "pseudotime", 
+           label_branch_points = FALSE, 
            label_cell_groups = FALSE,
            label_leaves = FALSE,
            label_groups_by_cluster = FALSE,
            cell_size = 0.7, graph_label_size = 5,
            alpha = 1) + new_scale3 + 
-  custom_theme + 
+  custom_theme() + 
   theme(axis.text = element_text(size = 12),
         axis.title = element_text(size = 14),
         legend.text = element_text(size = 12))
 
 # Plot cells according to sample disease status
-plot_cells(cds = cds_ordered, color_cells_by = "sample_disease_status", label_branch_points = FALSE, 
+plot_cells(cds = cds_ordered, 
+           color_cells_by = "sample_disease_status", 
+           label_branch_points = FALSE, 
            label_cell_groups = FALSE,
            label_leaves = FALSE,
            label_groups_by_cluster = FALSE,
            cell_size = 0.5, graph_label_size = 5,
            alpha = 1) +  
-  custom_theme + 
-  npg_scale + 
+  custom_theme() + 
+  miller_discrete_scale() + 
   theme(axis.text = element_text(size = 14),
         axis.title = element_text(size = 14),
         legend.position = "bottom",
         legend.text = element_text(size = 14)) 
 
+# Plot cells according to sample disease status
+plot_cells(cds = cds_ordered, 
+           color_cells_by = "arterial_origin", 
+           label_branch_points = FALSE, 
+           label_cell_groups = FALSE,
+           label_leaves = FALSE,
+           label_groups_by_cluster = FALSE,
+           cell_size = 0.5, graph_label_size = 5,
+           alpha = 1) +  
+  custom_theme() + 
+  miller_discrete_scale(option = 2) + 
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.position = "bottom",
+        legend.text = element_text(size = 14))
+
+# Need to figure out which specific coronary samples we're dealing with 
+
+
+
+#########################################################################
 # Plot distribution of cells from lesion status along pseudotime
 # Create df of subset SMCs for gene expression across pseudotime plotting
 metadata = colData(cds_ordered)
+
 # Add pseudotime values for each cell
 pseudotime = pseudotime(cds_ordered)
 metadata$pseudotime = pseudotime[match(rownames(metadata), 
@@ -176,15 +213,144 @@ metadata_df %>%
 
 # Save monocle object 
 saveRDS(cds_ordered, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/smc_pericytes_fibroblasts_subclustering_method1/smcs_ordered_cds_monocle3_obj.rds")
-cds_ordered = readRDS("~/Desktop/human_athero_scRNA_meta-analysis/rds_objects/monocle_objects/smcs_ordered_cds_monocle3_v3_obj.rds")
+cds_ordered = readRDS("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/monocle_objects/smcs_ordered_cds_monocle3_v3_obj.rds")
 
+#####################################################
+# Distribution of gene expression across pseudotime #
+#####################################################
 
 # In this section we'll find genes and modules that change as a function of pseudotime
 # Before running this function, need to run trace('calculateLW', edit = T, where = asNamespace("monocle3"))
 # and change Matrix::rBind to rbind
 smc_cds_pr_test_res = monocle3::graph_test(cds_ordered, neighbor_graph = "principal_graph", cores = 4)
 saveRDS(smc_cds_pr_test_res, "~/Desktop/human_athero_scRNA_meta-analysis/rds_objects/monocle_objects/smc_monocle3_cds_v3_graph_test.rds")
-smc_cds_pr_test_res = readRDS("~/Desktop/human_athero_scRNA_meta-analysis/rds_objects/monocle_objects/smc_monocle3_cds_v3_graph_test.rds")
+smc_cds_pr_test_res = readRDS("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/monocle_objects/smc_monocle3_cds_v3_graph_test.rds")
+
+# Filter df to keep only significant genes at FDR <= 0.05
+significant_genes_df = smc_cds_pr_test_res %>% 
+  filter(q_value <= 0.05) %>%
+  arrange(q_value)
+
+significant_genes_df2 = smc_cds_pr_test_res %>%
+  filter(q_value <= 0.05) %>%
+  arrange(desc(morans_I))
+
+# There are 8524 significant genes. 
+dim(significant_genes_df)
+significant_genes_df$gene_index = 1:nrow(significant_genes_df)
+
+# Create a plot showing significant genes
+significant_genes_df %>%
+  head(n=1000) %>%
+  ggplot(aes(x=gene_index ,y=-log10(q_value),
+             label= ifelse(-log10(q_value) > 100, 
+                           gene_short_name, ""))) + 
+  geom_point() + 
+  geom_text_repel() + 
+  theme_bw()
+
+##################################################################
+# Need to add pseudotime values into seurat object so can create a 
+# matrix for the heatmap
+
+# set default assay to SCT, just in case
+DefaultAssay(rpca_smc_subset_v3) = "SCT"
+
+# Add pseudotime values into Seurat object metadata
+rpca_smc_subset_v3@meta.data$pseudotime = pseudotime(cds_ordered)
+
+# Round pseudotime values
+rpca_smc_subset_v3$pseudotime_value_round = round(rpca_smc_subset_v3$pseudotime,
+                                                  digits = 1)
+rpca_smc_subset_v3$pseudotime_value_round = factor(rpca_smc_subset_v3$pseudotime_value_round,
+                                                   levels = unique(rpca_smc_subset_v3$pseudotime_value_round)[order(unique(rpca_smc_subset_v3$pseudotime_value_round))])
+
+# Define pseudotime points as idents to get avga gene expression
+Idents(rpca_smc_subset_v3) = "pseudotime_value_round"
+
+# Get Avg expression of genes at each point in pseudotime
+avgexp = AverageExpression(rpca_smc_subset_v3, 
+                           assays = c("SCT"), 
+                           slot = "data",
+                           return.seurat = TRUE)
+
+# Define top genes (check significant genes based on q value and morans I value)
+# Get the top 500 significant genes based on q values. 
+top_de_genes = head(rownames(significant_genes_df), n=500)
+
+# Create matrix of average gene expression by pseudotime values
+expression.values = FetchData(avgexp, vars = top_de_genes, 
+                              slot = "scale.data")
+
+# Use cluster.pseudotime.genes function from Peisker et al., 2022
+# Other helper functions
+cluster_pseudotime_genes = function(expression.values, k.treecut=5, keep.hclust=F){
+  #expression.values: expression values from FetchData
+  #k.treecut: cutoff value for the clustertree, based on this there will be more or less groups of genes
+  expression.values = as.data.frame(t(expression.values))
+  d = dist(expression.values, method = "euclidean")
+  clust = hclust(d, method = "complete")
+  plot(clust, labels = FALSE)
+  clust = cutree(clust, k = k.treecut) %>%  data.frame()
+  names(clust)="hcluster"
+  expression.values = cbind(expression.values,clust)
+  expression.values = arrange(expression.values,hcluster)
+  
+  order.df=NULL
+  for (k in levels(factor(expression.values$hcluster))) {
+    k_sub = expression.values[expression.values$hcluster==k,]
+    k_sub$hcluster=NULL
+    k_sub.means = colMeans(k_sub)
+    df = data.frame("ps"=names(k_sub.means[k_sub.means == max(k_sub.means)]),"k"=k)
+    order.df=rbind(order.df,df)
+  }
+  order.df = arrange(order.df,ps)
+  expression.values$hcluster = factor(expression.values$hcluster,levels=order.df$k )
+  expression.values = arrange(expression.values,hcluster)
+  if (keep.hclust) {
+    return(expression.values) 
+  }else{
+    expression.values$hcluster = sapply(expression.values$hcluster,function(k) strrep("_",k) )
+    rownames(expression.values) = paste0(expression.values$hcluster,rownames(expression.values))
+    expression.values$hcluster=NULL
+    return(expression.values)}
+}
+
+# Cluster genes in pseudotime
+expression.values = cluster_pseudotime_genes(expression.values)
+
+# Highlight both DE genes across pseudotime and also hits from the MAGMA gene effector analysis
+genes_to_highlight = c("_LMOD1", "_MYH11", "__ACTA2", "_FHL5", "_CARMN", "_ACTA2", "_TNS1", "_CNN1", 
+                       "__CRIP1", "__MFAP4", "__PFN1", "__BTF3", 
+                       "____LUM", "____COMP", "____TIMP1", "___COL8A1", "____CRTAC1", 
+                       "___FN1", "___VCAN", "____COL6A2", "___LTBP1", "____VCAM1", "____TCF21",
+                       "___LGALS3", "___PDGFRB", "____COL1A2", "___TGFB1", "FOXC1",
+                       "___COL4A1", "___CDH13", "__SLC22A3", "____AGT", "____LOXL1")
+
+newnames=NULL
+for (row.nr in 1:nrow(expression.values)){
+  if(row.names(expression.values[row.nr,]) %in% genes_to_highlight) 
+    {newnames=c(newnames,bquote(italic(.(row.names(expression.values[row.nr,])))))
+  } else {
+    newnames=c(newnames,"")
+  }
+}
+
+# Plot heatmap of gene expression across pseudotime
+expression.heatmap = pheatmap(expression.values,
+                              labels_row = as.expression(newnames), labels_col = "",
+                              cluster_cols = FALSE, cluster_rows = FALSE,
+                              angle_col = 45,border_color = 0,
+                              treeheight_row = 20,
+                              fontsize = 8, 
+                              scale = "column",
+                              #color = colorRampPalette(c("#053061", "white", "#A50F15"))(100)
+                              color = colorRampPalette(c("#053061", "#2171B5", "white", "#FFD92F", "#A50F15"))(100)
+                              #color = colorRampPalette(rev(color_palette))(200)
+                              )
+
+#############################
+# Group DE genes into modules
 
 # Keep only genes that pass the FDR < 0.05 threshold
 smc_deg_ids = row.names(subset(smc_cds_pr_test_res, q_value < 0.05))

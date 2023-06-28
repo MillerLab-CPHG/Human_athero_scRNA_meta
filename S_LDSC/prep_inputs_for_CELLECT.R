@@ -1,15 +1,12 @@
 library(Seurat)
-library(SeuratDisk)
 library(tidyverse)
 library(data.table)
-library(biomaRt)
-
-# Load human biomart 
+library(Matrix)
 
 
-############################################################################################
-# This script will prep inputs for creating gene expression specificity files with CELLEX  #
-############################################################################################
+################################################################################################################
+# This script will prep matrix and metadata inputs for creating gene expression specificity files with CELLEX  #
+################################################################################################################
 
 ######################################################################
 # PREP FILES FOR WIRKA TESTS
@@ -89,6 +86,121 @@ write.csv(smc_peri_fibro_metadata_df,
           "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/LDSC_Peri_SMC_Fibro/rpca_smc_fibro_prelim_annotations_metadata.csv",
           row.names = TRUE, quote = FALSE)
 
+#####################################################################
+# Extract normalized expression counts of cells from lesions (level 1 annotations) v3
+
+# Subset object to contain only cells from lesions (there are 59691 cells)
+lesion_subset_v3 = subset(rpca_int_sct_v3_1, subset = sample_disease_status == "lesion")
+lesion_subset_v3
+
+# Write matrix for lesion cells into sparse matrix format
+lesion_matrix = lesion_subset_v3@assays$SCT@data
+write(colnames(lesion_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/lesion/input_matrix_files/rpca_lesion_matrix_colnames.txt")
+write(rownames(lesion_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/lesion/input_matrix_files/rpca_lesion_matrix_rownames.txt")
+writeMM(lesion_matrix,
+        file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/lesion/input_matrix_files/rpca_lesion_sct_sparse_matrix.txt")
+
+# Write metadata for pericytes, SMCs and fibroblasts
+lesion_labels = lesion_subset_v3@meta.data$level1_annotations
+lesion_metadata_df = data.frame(cell_type=lesion_labels)
+rownames(lesion_metadata_df) = rownames(lesion_subset_v3@meta.data)
+write.csv(lesion_metadata_df, 
+          "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/lesion/input_matrix_files/rpca_lesion_level1_annotations_metadata.csv",
+          row.names = TRUE, quote = FALSE)
+
+
+################################################################################################
+# Extract normalized expression counts of cells from non-lesion samples (level 1 annotations) v3
+
+# Subset object to contain only cells from lesions (there are 58887 cells)
+non_lesion_subset_v3 = subset(rpca_int_sct_v3_1, subset = sample_disease_status == "non_lesion")
+non_lesion_subset_v3
+
+# Write matrix for lesion cells into sparse matrix format
+non_lesion_matrix = non_lesion_subset_v3@assays$SCT@data
+write(colnames(non_lesion_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/non_lesion/input_matrix_files/rpca_non_lesion_matrix_colnames.txt")
+write(rownames(non_lesion_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/non_lesion/input_matrix_files/rpca_non_lesion_matrix_rownames.txt")
+writeMM(non_lesion_matrix,
+        file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/non_lesion/input_matrix_files/rpca_non_lesion_sct_sparse_matrix.txt")
+
+# Write metadata for pericytes, SMCs and fibroblasts
+non_lesion_labels = non_lesion_subset_v3@meta.data$level1_annotations
+non_lesion_metadata_df = data.frame(cell_type=non_lesion_labels)
+rownames(non_lesion_metadata_df) = rownames(non_lesion_subset_v3@meta.data)
+write.csv(non_lesion_metadata_df, 
+          "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/non_lesion/input_matrix_files/rpca_non_lesion_level1_annotations_metadata.csv",
+          row.names = TRUE, quote = FALSE)
+
+
+##########################################################################
+# Extract normalized expression counts of cells from Endothelial partition
+
+# Define vector with names of endothelial subtypes
+endo_vec = c("Inflammatory_EC", "Angiogenic/Vasa_vasorum_EC", 
+             "Intimal_EC", "Lymphatic_EC", "EndoMT_EC")
+
+# Subset object to contain only cells from the Endothelial compartment 
+endo_subset_v3 = subset(rpca_int_sct_v3_1, subset = updated_level2_annotations %in% endo_vec)
+endo_subset_v3
+
+# Check annotations (we only kept Endo subtypes)
+unique(endo_subset_v3@meta.data$updated_level2_annotations)
+
+# Write matrix for lesion cells into sparse matrix format
+endo_matrix = endo_subset_v3@assays$SCT@data
+write(colnames(endo_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Endothelial/input_matrix_files/rpca_endo_matrix_colnames.txt")
+write(rownames(endo_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Endothelial/input_matrix_files/rpca_endo_matrix_rownames.txt")
+writeMM(endo_matrix,
+        file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Endothelial/input_matrix_files/rpca_endo_sct_sparse_matrix.txt")
+
+# Write metadata for pericytes, SMCs and fibroblasts
+endo_labels = endo_subset_v3@meta.data$updated_level2_annotations
+endo_metadata_df = data.frame(cell_type=endo_labels)
+rownames(endo_metadata_df) = rownames(endo_subset_v3@meta.data)
+write.csv(endo_metadata_df, 
+          "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Endothelial/input_matrix_files/rpca_endo_level2_annotations_metadata.csv",
+          row.names = TRUE, quote = FALSE)
+
+# Check we added the proper annotations to metadata
+unique(endo_metadata_df$cell_type)
+
+###################################################################################################
+# Extract normalized expression counts of cells from the Myeloid partition (level 1 annotations) v3
+
+# Define vector with names of Myeloid subtypes
+myeloid_vec = c("Foamy_Mac1", "Foamy_Mac2", "NAMPT_Neutrophils", "Phagocytosis_Mac",
+                "Tissue_resident_Mac", "Monocytes", "Proliferating_myeloid",
+                "Inflammatory_Mac", "Monocytes/DC", "cDC", "Mast_cell")
+
+# Subset object to contain only cells from the Myeloid lineage (there are 24142 cells)
+myeloid_subset_v3 = subset(rpca_int_sct_v3_1, subset = updated_level2_annotations %in% myeloid_vec)
+myeloid_subset_v3
+
+# Write matrix for lesion cells into sparse matrix format
+myeloid_matrix = myeloid_subset_v3@assays$SCT@data
+write(colnames(myeloid_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Myeloid/input_matrix_files/rpca_myeloid_matrix_colnames.txt")
+write(rownames(myeloid_matrix),
+      file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Myeloid/input_matrix_files/rpca_myeloid_matrix_rownames.txt")
+writeMM(myeloid_matrix,
+        file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Myeloid/input_matrix_files/rpca_myeloid_sct_sparse_matrix.txt")
+
+# Write metadata for Myeloid subtypes
+myeloid_labels = myeloid_subset_v3@meta.data$updated_level2_annotations
+myeloid_metadata_df = data.frame(cell_type=myeloid_labels)
+rownames(myeloid_metadata_df) = rownames(myeloid_subset_v3@meta.data)
+write.csv(myeloid_metadata_df, 
+          "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Myeloid/input_matrix_files/rpca_myeloid_level2_annotations_metadata.csv",
+          row.names = TRUE, quote = FALSE)
+
+# Check we have the proper myeloid annotations
+unique(myeloid_metadata_df$cell_type)
 
 
 ######################################################################

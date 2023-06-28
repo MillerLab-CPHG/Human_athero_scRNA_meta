@@ -13,7 +13,7 @@ set.seed(1)
 
 
 # Source our own scRNA analysis utils functions
-source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
+#source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
 
 
 ########################################################################
@@ -95,9 +95,12 @@ cca_int_sct = RunUMAP(cca_int_sct, dims = 1:30, n.neighbors = 30)
 cca_int_sct = FindClusters(cca_int_sct, resolution = 1.3)
 
 # Visualization of clusters
-p1_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan samples") + custom_theme
-p2_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) +  ggtitle("CCA+MNN Wirka/Pan study") + custom_theme
-p3_cca = DimPlot(cca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan clusters") + custom_theme
+p1_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan samples") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p2_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) +  ggtitle("CCA+MNN Wirka/Pan study") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p3_cca = DimPlot(cca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan clusters") + 
+  custom_theme() 
 p1_sct + p2_sct
 
 DimPlot(cca_int_sct, split.by = "study")
@@ -186,10 +189,13 @@ rpca_int_sct = RunUMAP(rpca_int_sct, dims = 1:30, n.neighbors = 30, min.dist = 0
 # Update: res of 1.2-1.4 provide the highest mean silhouette scores and ~ 30 clusters
 rpca_int_sct = FindClusters(rpca_int_sct, resolution = 1.3)
 
-# Visualization of clusters
-p1_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka samples") + custom_theme
-p2_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka study") + custom_theme
-p3_rpca = DimPlot(rpca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka clusters") + custom_theme
+# Plot cell embeddings
+p1_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka samples") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p2_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka study") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p3_rpca = DimPlot(rpca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka clusters") + 
+  custom_theme() 
 p1_rpca + p2_rpca
 
 # Visualize gene expression
@@ -262,20 +268,27 @@ harmony_seurat_int = RunPCA(harmony_seurat_merge) %>%
   RunUMAP(dims = 1:30, n.neighbors = 30, reduction="harmony") %>%
   FindNeighbors(reduction = "harmony", dims = 1:30, k.param = 20)
 
+# Cluster data 
 harmony_seurat_int =  FindClusters(harmony_seurat_int ,resolution = 1.2) # Resolution of 1 yields a similar number of clusters as in the above methods
-saveRDS(harmony_seurat_int, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Harmony/harmony_integrated_30dims_clustered_seurat_obj.rds")
-harmony_seurat_int = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Harmony/harmony_integrated_30dims_clustered_seurat_obj.rds")
 
 # Measure time for benchmark
 end_time_harmony = Sys.time()
 measured_time_harmony = end_time_harmony - start_time_harmony # Time difference of 5.433346 mins
 harmony_running_time = 5.4
 
+# Save rds object
+saveRDS(harmony_seurat_int, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Harmony/harmony_integrated_30dims_clustered_seurat_obj.rds")
+harmony_seurat_int = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Harmony/harmony_integrated_30dims_clustered_seurat_obj.rds")
 
-p1_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka samples") + custom_theme
-p2_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka study") + custom_theme
-p3_harmony = DimPlot(harmony_seurat_int, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka clusters") + custom_theme
+# Plot embeddings produced by Harmony
+p1_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka samples") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p2_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka study") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p3_harmony = DimPlot(harmony_seurat_int, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka clusters") + 
+  custom_theme() 
 
+# Plot expression of some representative markers
 FeaturePlot(harmony_seurat_int, features = c("CNN1", "ACTA2", "VCAN", "CRTAC1", "FBLN1", "ACTA2"), 
             order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
 
@@ -392,10 +405,16 @@ scanorama_seurat = RunUMAP(scanorama_seurat, dims = 1:30, n.neighbors = 30, min.
 # Update: res of 1.1 provide the highest mean silhouette scores and ~ 30 clusters
 scanorama_seurat = FindClusters(scanorama_seurat, resolution = 1.1)
 
+# Add study metadata for benchmarking
+scanorama_seurat$study = rpca_int_sct@meta.data$study
+
 # Visualization of clusters
-p1_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka samples") + custom_theme
-p2_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka study") + custom_theme
-p3_scanorama = DimPlot(scanorama_seurat, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka clusters") + custom_theme
+p1_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka samples") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p2_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka study") + 
+  custom_theme() + miller_discrete_scale(option = 2)
+p3_scanorama = DimPlot(scanorama_seurat, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka clusters") + 
+  custom_theme() 
 p1_scanorama + p2_scanorama
 
 # Visualize gene expression
@@ -434,14 +453,21 @@ int_running_times_df = data.frame(integration_method = c("CCA_MNN", "rPCA", "Har
 int_running_times_df$integration_method = factor(int_running_times_df$integration_method, 
                                                  levels = c("Scanorama", "CCA_MNN", "rPCA", "Harmony"))
 
-running_time_plot = ggplot(int_running_times_df, aes(x=integration_method, y=running_time_hours, fill=integration_method)) + 
+running_time_plot = 
+  
+int_running_times_df %>%
+  #fct_reorder(integration_method, running_time_minutes) %>%
+  ggplot(aes(x=reorder(integration_method, running_time_minutes), 
+             y=running_time_minutes, fill=integration_method)) + 
   geom_col(width = 0.8) + 
-  xlab("Integration method") +
+  xlab("Method") +
   ylab("Running time (mins)") + 
   ggtitle("Running time benchmark for integration of Alsaigh/Pan/Wirka datasets") +  
-  custom_theme +
+  custom_theme() +
   scale_fill_manual(values = c("#4DBBD5FF", "#E64B35FF", "#3C5488FF", "#00A087FF")) +  
-  theme(aspect.ratio = 1.3)
+  theme(aspect.ratio = 1.3,
+        axis.text.x = element_text(angle=45, hjust=1),
+        legend.position = "none")
 
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure1/SuppFig1c_integration_running_time_benchmark.pdf",
        plot = running_time_plot, width = 8, height = 8)
