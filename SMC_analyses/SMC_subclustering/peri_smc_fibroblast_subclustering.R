@@ -1,4 +1,5 @@
 library(Seurat)
+library(scRNAutils)
 library(tidyverse)
 library(data.table)
 library(cluster)
@@ -23,8 +24,7 @@ set.seed(1)
 # Load batch corrected reference with cell type annotations. 
 # This Seurat object contains the subclustered and annotated data
 rpca_smc_fibro_subset_v3 = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/smc_pericytes_fibroblasts_subclustering_method1/seurat_objects/whole_ref_v3/peri_smc_fibro_subset_seurat_obj_res0.9_v2.rds")
-DefaultAssay(rpca_smc_fibro_subset_v3) = "integrated"
-#rpca_int_sct = FindClusters(rpca_int_sct, resolution = 0.9) 
+DefaultAssay(rpca_smc_fibro_subset_v3) = "SCT"
 
 #########################
 # Subclustering of SMCs #
@@ -53,7 +53,6 @@ rpca_smc_fibro_subset_v3 = FindClusters(rpca_smc_fibro_subset_v3, resolution = 0
 # This is where the latest changes to the SMC subckustered seurat obj are stored
 saveRDS(rpca_smc_fibro_subset_v3, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/smc_pericytes_fibroblasts_subclustering_method1/seurat_objects/whole_ref_v3/peri_smc_fibro_subset_seurat_obj_res0.9_v2.rds")
 
-
 # Visualize clusters at res0.7 and cell type annotations
 p3_rpca_smc = DimPlot(rpca_smc_fibro_subset_v3, label = TRUE, pt.size = 0.2) + custom_theme
 prelim_annotations = DimPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annotations", label = FALSE, repel = TRUE, pt.size = 0.2) + custom_theme + npg_scale +
@@ -70,41 +69,63 @@ table(rpca_smc_fibro_subset@meta.data$study)
 
 # Look at markers expression
 DefaultAssay(rpca_smc_fibro_subset_v3) = "SCT"
-FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "VCAN", "COL6A3", "FN1", "COL1A2", "VCAM1"), order = TRUE, pt.size = 0.1) & new_scale & custom_theme
+FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "VCAN", "COL6A3", "FN1", "COL1A2", "VCAM1"), 
+            order = TRUE, pt.size = 0.1) & custom_theme()
 
 # SMC markers
-FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "CNN1", "ACTA2", "TPM2", "TAGLN", "LMOD1"), order = TRUE, pt.size = 0.1) & new_scale3 & custom_theme
+FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "CNN1", "ACTA2", "TPM2", "TAGLN", "LMOD1"), 
+            order = TRUE, pt.size = 0.1) & custom_theme()
 
 # Fibromyo markers 
-FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "VCAM1", "TNFRSF11B", "KRT17", "VCAN", "LTBP1"), order = TRUE, pt.size = 0.1) & new_scale3 & custom_theme
+FeaturePlot(rpca_smc_fibro_subset_v3, features = c("MYH11", "VCAM1", "TNFRSF11B", "KRT17", "VCAN", "LTBP1"), 
+            order = TRUE, pt.size = 0.1) & custom_theme()
 
 # Fibrochondro markers 
-FeaturePlot(rpca_smc_fibro_subset_v3, features = c("CNN1", "FN1", "COL1A2", "COL3A1", "CRTAC1", "CLU"), order = TRUE, pt.size = 0.1) & new_scale & custom_theme
+FeaturePlot(rpca_smc_fibro_subset_v3, features = c("CNN1", "FN1", "COL1A2", "COL3A1", "CRTAC1", "CLU"), 
+            order = TRUE, pt.size = 0.1) & custom_theme()
 
 # Fibroblast markers
-FeaturePlot(rpca_smc_fibro_subset_v3, features = c("TNFRSF11B", "KRT17", "FN1", "C7", "FBLN1", "SERPINF1"), order = TRUE, pt.size = 0.1) & new_scale3 & custom_theme
+FeaturePlot(rpca_smc_fibro_subset_v3, features = c("TNFRSF11B", "KRT17", "FN1", "C7", "FBLN1", "SERPINF1"), 
+            order = TRUE, pt.size = 0.1) & custom_theme()
 
 FeaturePlot(rpca_smc_fibro_subset_v3, split.by = "sample_disease_status", features = c("HDAC4", "HDAC5", "PTK2"), raster = FALSE)
 
 # CRTAC1
-crtac1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("CRTAC1"), pt.size = 0.7) & new_scale3 & custom_theme
+crtac1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("CRTAC1"), pt.size = 0.7) & custom_theme() & miller_continous_scale()
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_CRTAC1_UMAP.pdf",
        plot = crtac1, width = 7, height = 7)
 
 # IBSP
-ibsp = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("IBSP"), pt.size = 0.7, order = TRUE) & new_scale3 & custom_theme
+ibsp = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("IBSP"), pt.size = 0.7, 
+                   order = TRUE) & custom_theme() & miller_continous_scale()
 #ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_IBSP_UMAP.pdf",
 #       plot = ibsp, width = 7, height = 7)
 
 # LTBP1
-ltbp1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("LTBP1"), pt.size = 0.7, order = TRUE) & new_scale3 & custom_theme
+ltbp1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("LTBP1"), pt.size = 0.7, 
+                    order = TRUE) & custom_theme() & miller_continous_scale()
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_LTBP1_UMAP.pdf",
        plot = ltbp1, width = 7, height = 7)
 
 # VCAN
-vcan = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("VCAN"), pt.size = 0.7, order=TRUE) & new_scale3 & custom_theme
+vcan = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("VCAN"), pt.size = 0.7, 
+                   order=TRUE) & custom_theme() & miller_continous_scale()
 ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure6/Fig6a_VCAN_UMAP.pdf",
        plot = vcan, width = 7, height = 7)
+
+# VCAM1
+vcam1 = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("VCAM1"), pt.size = 0.5, 
+                    order=TRUE) & custom_theme() & miller_continous_scale()
+ggsave("/gpfs/gpfs0/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Rebuttal_Fig1/Reb_Fig1b_VCAM1_UMAP.png",
+       plot = vcam1, width = 7, height = 7)
+
+# Fibroblast markers
+fibroblast_markers = FeaturePlot(rpca_smc_fibro_subset_v3, features = c("FBLN1", "C7", "SERPINF1", "ACTA2"), pt.size = 0.1, 
+            order=TRUE) & custom_theme() & miller_continous_scale()
+
+ggsave("/gpfs/gpfs0/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Rebuttal_Fig4/Reb_Fig4b_fibroblast_markers_UMAP.png",
+       plot = fibroblast_markers, width = 10, height = 10)
+
 
 # Make a dotplot for prelim cell type annotations
 smc_marker_dotplot = DotPlot(rpca_smc_fibro_subset_v3, group.by = "prelim_annotations",  features = c("MYH11", "CNN1", "TPM2", "MYL9", "ACTA2", 
@@ -132,7 +153,23 @@ markers$mouse_meta_Fibroblast1 = fibro1_human_homologs_vec_top50
 rpca_smc_fibro_subset =  AddModuleScore_UCell(rpca_smc_fibro_subset_v3, features = markers)
 signature.names = paste0(names(markers), "_UCell")
 
-FeaturePlot(rpca_smc_fibro_subset, features = signature.names, order = TRUE, pt.size = 0.3) & new_scale & custom_theme
+FeaturePlot(rpca_smc_fibro_subset, features = signature.names, 
+            order = TRUE, pt.size = 0.3) & miller_continous_scale() & custom_theme()
+
+# Create a list to store murine gene modules from Kim et al to enrich in human data
+kim_markers = list()
+kim_markers$Kim_Contractile_SMC = smc_kim_homologs_vec
+kim_markers$Kim_FMC = fmc_kim_homologs_vec
+kim_markers$Kim_FC = fc_kim_homologs_vec
+
+rpca_smc_fibro_subset = AddModuleScore_UCell(rpca_smc_fibro_subset_v3, features = kim_markers)
+signature.names = paste0(names(kim_markers), "_UCell")
+
+kim_signatures = FeaturePlot(rpca_smc_fibro_subset, features = signature.names, 
+                             order = TRUE, pt.size = 0.1) & miller_continous_scale() & custom_theme()
+
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/rebuttal_figures/Reb_Fig1a_Kim_signatures.png",
+       plot = kim_signatures, width = 8, height = 8)
 
 
 #########################################

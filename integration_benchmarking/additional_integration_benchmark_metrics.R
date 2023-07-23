@@ -377,7 +377,8 @@ saveRDS(merged_res,
 
 merged_res = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/int_benchmark/kBET_results/kBET_rejection_rates_df.rds")
 
-merged_res %>%
+# Plot kBET observed rejection rates curve
+kbet_rates_curve = merged_res %>%
   filter(class == "observed") %>%
   group_by(method, k) %>%
   summarize(mean_obs_rejection_rate = mean(data)) %>%
@@ -393,10 +394,14 @@ merged_res %>%
        y="Mean kBET observed rejection rate") + 
   custom_theme() + 
   theme(aspect.ratio = 1.3,
-        legend.position = "right",
-        axis.text.x = element_text(angle=45, hjust=1)) + 
-  miller_discrete_scale()
+        legend.position = "none") + 
+  scale_color_manual(values= c("#E64B35FF", "#00A087FF", "#3C5488FF",
+                              "#4DBBD5FF"))
 
+# Save kBET rejection rates curve
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2f_kBET_rejection_rates.pdf",
+       plot = kbet_rates_curve, width = 4, height = 5)
+  
 
 # Calculate the area under the curve (AUC) for each method
 methods = c("CCA_MNN", "rPCA", "Harmony", "Scanorama")
@@ -404,6 +409,7 @@ auc_list = list()
 
 for (i in seq_along(methods)) { 
   
+  # Keep only observed rejection rates and compute means
   sorted_rej_rates = merged_res %>% 
     filter(class == "observed" & method == methods[i]) %>%
     group_by(method, k) %>%
@@ -411,6 +417,7 @@ for (i in seq_along(methods)) {
     arrange(mean_obs_rejection_rate) %>%
     mutate(k_index = seq(1, 7, by=1))
   
+  # Calculate area under the curve 
   auc = DescTools::AUC(x=sorted_rej_rates$k_index,
                        y=sorted_rej_rates$mean_obs_rejection_rate,
                        method="spline")
@@ -418,11 +425,6 @@ for (i in seq_along(methods)) {
   names(auc_list)[i] = methods[i]
 
   }
-
-
-
-
-
 
 
 ##################################################
@@ -475,9 +477,10 @@ r2var_df = data.frame(method=c("CCA", "rPCA", "Harmony", "Scanorama"),
                               pcr_list$rpca$R2Var,
                               pcr_list$harmony$R2Var,
                               pcr_list$scanorama$R2Var))
-r2var_df %>%
-  mutate(method=fct_reorder(method, 
-                            desc(-log10(R2Var)))) %>%
+
+# Plot the -log10 values of variance explained by batch effects
+r2var_plot = r2var_df %>%
+  mutate(method=fct_reorder(method, -log10(R2Var), .desc=TRUE)) %>%
   ggplot(aes(x=method, y=-log10(R2Var), 
              fill=method)) + 
   geom_col(width = 0.6) + 
@@ -489,6 +492,10 @@ r2var_df %>%
         legend.position = "none",
         axis.text.x = element_text(angle = 45,
                                    hjust=1))
+
+# Save PC regression plot
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2e_r2var_PC_regression_plot.pdf",
+       plot = r2var_plot, width = 3, height = 4)
 
 ############################################
 # Run a quick test for the batch sil score #
@@ -659,13 +666,13 @@ merged_lisi_df = data.table::rbindlist(list(cca_batch_metadata,
 # Save df with LISI scores (iLISI and cLISI)
 saveRDS(merged_lisi_df,
         "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA_Harmony_CCA_Scanorama_LISI_scores_per_cell.rds")
-merged_lisi_df = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA_Harmony_CCA_Scanorama_clISI_scores_per_cell.rds")
+merged_lisi_df = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA_Harmony_CCA_Scanorama_LISI_scores_per_cell.rds")
 
 # Plot iLISI scores
 mean_ilisi_scores = merged_lisi_df %>%
   group_by(method) %>%
   summarize(mean_iLISI = mean(ilisi)) %>%
-  mutate(method = fct_reorder(method, desc(mean_iLISI))) %>%
+  mutate(method = fct_reorder(as.factor(method), mean_iLISI, .desc=TRUE)) %>%
   ggplot(aes(x=method, y=mean_iLISI, fill=method)) + 
   geom_col(width = 0.6) + 
   xlab("Method") + 
@@ -677,15 +684,15 @@ mean_ilisi_scores = merged_lisi_df %>%
         legend.position = "none",
         axis.text.x = element_text(angle=45, hjust=1))
 
-ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure1/SuppFig1e_integration_mean_cLISI_scores.pdf",
-       plot = mean_clisi_scores, width = 8, height = 8)
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2c_integration_mean_iLISI_scores.pdf",
+       plot = mean_ilisi_scores, width = 3, height = 4)
 
 
 # Plot cLISI scores
 mean_clisi_scores = merged_lisi_df %>%
   group_by(method) %>%
   summarize(mean_cLISI = mean(clisi)) %>%
-  mutate(method = fct_reorder(method, mean_cLISI)) %>%
+  mutate(method = fct_reorder(as.factor(method), mean_cLISI)) %>%
   ggplot(aes(x=method, y=mean_cLISI, fill=method)) + 
   geom_col(width = 0.6) + 
   xlab("Method") + 
@@ -697,8 +704,8 @@ mean_clisi_scores = merged_lisi_df %>%
         legend.position = "none",
         axis.text.x = element_text(angle=45, hjust=1))
 
-ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure1/SuppFig1e_integration_mean_cLISI_scores.pdf",
-       plot = mean_clisi_scores, width = 8, height = 8)
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2d_integration_mean_cLISI_scores.pdf",
+       plot = mean_clisi_scores, width = 3, height = 4)
 
 
 

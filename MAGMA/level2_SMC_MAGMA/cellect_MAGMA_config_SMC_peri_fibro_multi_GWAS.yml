@@ -1,0 +1,127 @@
+---
+
+############################################################################################################################
+#################################################### INFORMATION ###########################################################
+############################################################################################################################
+
+# All file paths accept absolute and relative paths
+# Environment variables (including ~) are not processed, so don't use them in this config.
+
+
+############################################################################################################################
+############################################ RUN COMMON VARIABLES ##########################################################
+############################################################################################################################
+
+# Folder where all the outputs are saved (LD scores, prioritization results files, etc.) 
+# CELLECT-LDSC and CELLECT-MAGMA will write the analysis results into <BASE_OUTPUT_DIR>/CELLECT-LDSC and <BASE_OUTPUT_DIR>/CELLECT-MAGMA subdirectories respectively. The directory and its subdirectories will be created if they do not exist.
+BASE_OUTPUT_DIR: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/SMC_Peri_Fibro_CELLECT_outputs
+
+
+### SPECIFICITY_INPUT: list of dictionaries
+# id: identifier for the dataset. Output files will be prefixed with the id. MUST be unique and NO double underscores allowed
+# path: the path to the matrix containing specificity scores for each genomic region, does not need to be unique
+# the files can be uncompressed or compressed (gz/bz2 formats are supported).
+SPECIFICITY_INPUT:
+  - id: smc_peri_fibroblast_expression_specificity
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/LDSC_Peri_SMC_Fibro/CELLEX_files/smc_peri_fibro_prelim_annotations_expression_specificity_Ensembl_IDs_backup.esmu.csv 
+
+### GWAS_SUMSTATS: list of dictionaries
+# id: identifier for GWAS. MUST be unique and NO double underscores allowed
+# path: filepath for munged GWAS sumstats. Uncompressed / gz or bz2 compressed files allowed.
+GWAS_SUMSTATS:
+  - id: CAD_GWAS_van_der_Harst
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAD_GWAS_van_der_Harst/CAD_munge_stats.sumstats.gz
+  - id: CAD_MVP_EUR_meta
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAD_GWAS_MVP_EUR/munged_CAD_MVP.sumstats.gz
+  - id: CAC_GWAS
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAC_GWAS/munged_CAC.sumstats.gz
+  - id: Pulse_pressure_MVP
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/pulse_pressure_MVP_GWAS/munged_pulse_pressure_MVP.sumstats.gz
+  - id: Myocardial_infarction
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/MI_GWAS_Hartiala/munged_MI_Hartiala_meta.sumstats.gz
+  - id: Carotid_plaque
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/Carotid_plaque_GWAS/munged_Carotid_plaque.sumstats.gz
+  - id: Body_mass_index
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/BMI_GWAS/munged_UKBB_BMI.sumstats.gz
+  - id: Type_2_diabetes
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/T2D_GWAS/munged_UKBB_T2D.sumstats.gz
+  - id: White_blood_cell_count
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/White_blood_cell_count_GWAS/munged_UKBB_White_blood_cell_count.sumstats.gz
+  - id: Alzheimer_disease_Jansen
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/Alzheimer_Jansen_GWAS/munged_Alzheimer_Jansen.sumstats.gz
+ 
+
+
+ANALYSIS_TYPE: # specify what analysis type to run. At least one analysis type needs to be specified.
+  prioritization: True # prioritizes all cell-type annotations in the SPECIFICITY_INPUT datasets
+  conditional: False # performs conditional analysis for selected annotations.
+  heritability: False # [CELLECT-LDSC ONLY] estimates heritability for selected annotations. 
+  heritability_intervals: False # [CELLECT-LDSC ONLY] estimates heritability intervals for selected annotations. 'heritability' must be True when enabling heritability_intervals
+
+WINDOW_DEFINITION: # Window definition for mapping gene specificity values to SNPs
+  WINDOW_SIZE_KB:
+    10
+
+GENE_COORD_FILE: # Path to gene coordinates. First five columns must be: ensembl_gene_id, chromosome, start_position, stop_position, strand. No header allowed
+  /project/cphg-millerlab/Jose/CELLECT/data/shared/gene_coordinates.GRCh37.ensembl_v91.txt
+KEEP_ANNOTS: # [CELLECT-LDSC ONLY] If True, for each specificity input a file containing the SNP:ES (and all overlapping genes) mappings will be saved to output also. If you only want this and do not wish to run the rest of CELLECT add "--until make_annot" to the normal snakemake command
+  False
+
+############################################################################################################################
+############################################## CONDITIONAL ANALYSIS ########################################################
+############################################################################################################################
+
+### CONDITIONAL_INPUT: list of dictionaries
+# id: dataset input - must correspond to an id in SPECIFICITY_INPUT.
+# annotations: annotations to condition on
+# NOTE: you can delete or leave these dicts blank if the 'analysis type' is not activated
+CONDITIONAL_INPUT:
+  - id: 
+    annotations:
+  # - id: tabula_muris-test
+  #   annotations: ['XX']
+
+
+############################################################################################################################
+###################################### HERITABILITY ANALYSIS (LDSC ONLY) ###################################################
+############################################################################################################################
+
+### HERITABILITY_INPUT: list of dictionaries
+# id: dataset input - must correspond to an id in SPECIFICITY_INPUT.
+# annotations: annotations to estimate heritability for
+# NOTE: you can delete or leave these dicts blank if the 'analysis type' is not activated
+HERITABILITY_INPUT:
+  - id: 
+    annotations: 
+        
+############################################################################################################################
+####################################### EFFECTOR GENE ANALYSIS (MAGMA ONLY) #################################################
+############################################################################################################################
+# NOTE: you can delete or leave these dicts blank or as they are if the effector_genes analysis type is not activated
+N_GENES_MAGMA: 1000 # number of top magma genes to include, sorted by p-value in ascending order
+PERCENTILE_CUTOFF_ESMU: 90 # percentile cutoff for non-zero ESmu genes to include, sorted by ESmu value in descending order
+
+#############################################################################################################################
+##################################################### CONSTANTS #############################################################
+#############################################################################################################################
+
+# You generally do not need to change these variables.
+
+LDSC_CONST:
+  DATA_DIR: # Path to the data used for CELLECT-LDSC (baseline model, gene mapping etc).
+    /project/cphg-millerlab/Jose/CELLECT/data/ldsc
+  LDSC_DIR: # Path to the a cloned version of the github repo pascaltimshel/ldsc. This is included as a git submodule.
+    /project/cphg-millerlab/Jose/CELLECT/ldsc
+  NUMPY_CORES: # Numpy by default uses all cores available to it. This variable limits the amount of cores numpy can use to 1 so snakemake has full control over multicore processing via ithe '-j' flag.
+    1
+
+
+MAGMA_CONST:
+  DATA_DIR: # Path to the data used for CELLECT-MAGMA (baseline model, gene mapping etc).
+    /project/cphg-millerlab/Jose/CELLECT/data/magma
+  NUMPY_CORES: # Numpy by default uses all cores available to it. This variable limits the amount of cores numpy can use to 1 so snakemake has full control over multicore processing via the '-j' flag.
+    1
+  EXCLUDE_MHC: # Exclude genes located in the MHC region (chr6:27Mb-32Mb) during prioritization. 
+  # We recommend setting this to True, unless you know what you are doing and analysing immune GWAS traits.
+  # CELLECT-LDSC also does not include genetic signal from the MHC region.
+    True

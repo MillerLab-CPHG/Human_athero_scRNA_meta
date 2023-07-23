@@ -1,13 +1,14 @@
 library(Seurat)
+library(scRNAutils)
 library(tidyverse)
 library(data.table)
+library(ggrepel)
+library(ggsci)
+library(pheatmap)
 
 # Set seed for reproducibility
 set.seed(1)
 
-
-# Source our own scRNA analysis utils functions
-source("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/R_scripts/Utils/scRNA_processing_utils.R")
 
 ##################################################################################
 # This script will plot gene expression specificity valuues using the ES matrix  #
@@ -19,7 +20,9 @@ level1_specificity = fread("/project/cphg-millerlab/Jose/human_scRNA_meta_analys
 head(level1_specificity)
 
 # Define some well known markers for level1 annotations
-level1_markers = c("MYH11", "PECAM1", "CD68", "NKG7", "C7", "MZB1", "LMOD1", "CD79A", "S100B", "PTGDS", "TPSAB1")
+level1_markers = c("MYH11", "LMOD1", "PECAM1", "CD68", "NKG7", "C7", "MZB1", 
+                   "CD79A", "S100B", "PTGDS", "TPSAB1",
+                   "IGLC2")
 level1_df = level1_specificity[level1_specificity$gene %in% level1_markers,]
 
 reshaped_level1_df = reshape2::melt(level1_df, id=c("gene"))
@@ -35,7 +38,31 @@ reshaped_level1_df %>%
   theme(aspect.ratio = 1.3,
         axis.text.x = element_text(angle=45, hjust=1)) +
   miller_discrete_scale(style = "bars", option = 2) 
-  
+
+# Plot histogram for all cell types
+level1_specificity_reshaped = reshape2::melt(level1_specificity)
+names(level1_specificity_reshaped) = c("gene", "level1_annotation", "ESmu")
+
+level1_specificity_reshaped %>%
+  ggplot(aes(x=ESmu)) +
+  geom_density() +
+  custom_theme() + 
+  facet_wrap(~ level1_annotation, scales="free_y", ncol = 6) + 
+  theme(strip.background = element_rect(fill="white"),
+        strip.text = element_text(size=12)) + 
+  miller_discrete_scale()
+
+
+# Make heatmap
+level1_matrix = as.matrix(level1_df, rownames = "gene")
+head(level1_matrix)
+level1_es_heatmap = pheatmap::pheatmap(level1_matrix,
+                   color = colorRampPalette(c("#053061", "white", "#A50F15"))(100),
+                   cluster_rows = TRUE, cluster_cols = TRUE, fontsize = 12, angle_col = 45
+                   #color = colorRampPalette(c("#053061", "#2171B5", "white", "#FFD92F", "#A50F15"))(100)
+                   )
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Figure2/revision_figures/level1_ES_heatmap.pdf",
+       plot = level1_es_heatmap, width = 5, height = 5)
 
 
 ###############################################

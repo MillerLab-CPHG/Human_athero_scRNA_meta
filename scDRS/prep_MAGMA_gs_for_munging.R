@@ -4,24 +4,11 @@ library(tidyverse)
 library(data.table)
 
 
+#################################################################################
+# The goal of this script is to prep the magma gene sets for munging with scDRS #
+#################################################################################
 
-################################################################################
-# The goal of this script is to prep the magma gene sets for munging with scDRS
-
-#####################################################
-# Prep CAD van der Harst MAGMA GS for scDRS munging #
-#####################################################
-
-# Load MAGMA gene set for the van der Harst CAD GWAS sum stats
-cad_magma_gs = fread("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/CELLECT_test/MAGMA_outs/window_10kb/CELLECT_magma_test_outs/CELLECT-MAGMA/precomputation/CAD_GWAS_van_der_Harst/CAD_GWAS_van_der_Harst.genes.out")
-head(cad_magma_gs)
-
-# We have a 18877 genes x 9 variables
-dim(cad_magma_gs)
-
-# Check how many unique ENSEMBL IDs we have: There are 18877 unique ENSEMBL IDs
-length(unique(cad_magma_gs$GENE))
-
+# Load hg19 gene coords
 # Load gene coordinates directly from CELLECT files
 gene_coords_hg19 = fread("/project/cphg-millerlab/Jose/CELLECT/data/shared/gene_coordinates.GRCh37.ensembl_v91.txt")
 names(gene_coords_hg19) = c("Ensembl_id", "Chrom", "Start", "End", 
@@ -29,39 +16,6 @@ names(gene_coords_hg19) = c("Ensembl_id", "Chrom", "Start", "End",
 # This file contains 19430 genes 
 dim(gene_coords_hg19)
 head(gene_coords_hg19)
-
-# We simply need to match the ensembl ids on the MAGMA gs to the ensembl ids in the gene coords file
-cad_magma_gs$GENE_SYMBOL = gene_coords_hg19$Gene_symbol[match(cad_magma_gs$GENE, 
-                                                              gene_coords_hg19$Ensembl_id)]
-
-######################################################
-# Format MAGMA gene sets as pval for munging in scDRS. 
-scdrs_pval_file = cad_magma_gs %>% 
-  dplyr::select(GENE_SYMBOL, P) %>%
-  group_by(GENE_SYMBOL) %>%
-  filter(P == min(P)) %>%
-  distinct()
-names(scdrs_pval_file) = c("GENE", "CAD_van_der_Harst")
-
-# Write to .csv for munging
-write.table(scdrs_pval_file,
-            file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/scDRS_analyses/scDRS_pilot/CAD_GWAS_van_der_Harst_pval.tsv",
-            quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
-
-
-#############################################################
-# Format MAGMA gene sets as zscore_file for munging in scDRS. 
-scdrs_zscore_file = cad_magma_gs %>%
-  dplyr::select(GENE_SYMBOL, ZSTAT) %>%
-  group_by(GENE_SYMBOL) %>%
-  filter(ZSTAT == max(ZSTAT)) %>%
-  distinct()
-names(scdrs_zscore_file) = c("GENE", "CAD_van_der_Harst")
-
-# Write to .csv for munging
-write.table(scdrs_zscore_file,
-            file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/scDRS_analyses/scDRS_pilot/CAD_GWAS_van_der_Harst_zscores.tsv",
-            quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
 
 #########################################################
 # Prep CAD GWAS MVP EUR meta MAGMA GS for scDRS munging #
@@ -176,41 +130,6 @@ write.table(alzheimer_scdrs_zscores_file,
             quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
 
 
-# Prep Carotid Plaque MAGMA GS for munging in scDRS
-
-# Load Carotid Plaque MAGMA GS
-carotid_plaque_magma_gs = fread("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/CELLECT_outputs/whole_ref/CELLECT-MAGMA/precomputation/Carotid_plaque/Carotid_plaque.genes.out")
-head(carotid_plaque_magma_gs)
-
-# We have 18898 genes x 9 vars
-dim(carotid_plaque_magma_gs)
-
-# We simply need to match the ensembl ids on the MAGMA gs to the ensembl ids in the gene coords file used for SNP mapping 
-carotid_plaque_magma_gs$GENE_SYMBOL = gene_coords_hg19$Gene_symbol[match(carotid_plaque_magma_gs$GENE, 
-                                                                         gene_coords_hg19$Ensembl_id)]
-
-# Format MAGMA GS as pval file for munging in scDRS
-carotid_plaque_scdrs_pval_file = carotid_plaque_magma_gs %>%
-  select(GENE_SYMBOL, P) %>%
-  group_by(GENE_SYMBOL) %>%
-  filter(P == min(P)) %>%
-  distinct()
-names(carotid_plaque_scdrs_pval_file) = c("GENE", "Carotid_Plaque")
-write.table(carotid_plaque_scdrs_pval_file,
-            file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/scDRS_analyses/scDRS_pilot/magma_gene_sets/Carotid_plaque/Carotid_plaque_magma_pval.tsv",
-            sep = "\t", row.names = FALSE, col.names = TRUE)
-
-
-# Format MAGMA GS as pval file for munging in scDRS
-carotid_plaque_scdrs_zscores_file = carotid_plaque_magma_gs %>%
-  select(GENE_SYMBOL, ZSTAT) %>%
-  group_by(GENE_SYMBOL) %>%
-  filter(ZSTAT == max(ZSTAT)) %>%
-  distinct()
-names(carotid_plaque_scdrs_zscores_file) = c("GENE", "Carotid_Plaque")
-write.table(carotid_plaque_scdrs_zscores_file,
-            file = "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/scDRS_analyses/scDRS_pilot/magma_gene_sets/Carotid_plaque/Carotid_plaque_magma_zscores.tsv",
-            sep = "\t", row.names = FALSE, col.names = TRUE)
 
 
 

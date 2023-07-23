@@ -76,8 +76,10 @@ cca_int_sct = IntegrateData(anchorset = cca_sct_anchors, normalization.method = 
 
 # Measure time for benchmark
 end_time_cca = Sys.time()
-measured_time_cca = end_time_cca - start_time_cca # Time difference of 1.161337 hours (69.7 mins)
-cca_running_time = 69.7
+
+# Time difference of 1.161337 hours (69.7 mins)
+measured_time_cca = end_time_cca - start_time_cca 
+cca_running_time = measured_time_cca
 
 # Save integrated seurat object without running dim reduction and clustering (so we can play with diff parameters 
 # wihtoud datasets to integrate
@@ -98,12 +100,14 @@ cca_int_sct = FindClusters(cca_int_sct, resolution = 1.3)
 p1_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan samples") + 
   custom_theme() + miller_discrete_scale(option = 2)
 p2_cca = DimPlot(cca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) +  ggtitle("CCA+MNN Wirka/Pan study") + 
-  custom_theme() + miller_discrete_scale(option = 2)
+  custom_theme() + miller_discrete_scale(option = 2) + theme(legend.position = "none")
 p3_cca = DimPlot(cca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("CCA+MNN Wirka/Pan clusters") + 
   custom_theme() 
 p1_sct + p2_sct
 
-DimPlot(cca_int_sct, split.by = "study")
+# Save plot by study
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2a_CCA_UMAP_embeddings.png",
+       plot = p2_cca, width = 10, height = 10)
 
 # Visualize gene expression
 DefaultAssay(cca_int_sct) = "SCT"
@@ -166,8 +170,10 @@ rpca_int_sct = IntegrateData(anchorset = rpca_sct_anchors,
 
 # Measure time for benchmark
 end_time_rpca = Sys.time()
-measured_time_rpca = end_time_rpca - start_time_rpca # Time difference of 23.13806 mins
-rpca_running_time = 23.1
+
+# Time difference of 23.13806 mins
+measured_time_rpca = end_time_rpca - start_time_rpca 
+rpca_running_time = measured_time_rpca
 
 # Save integrated seurat object without running dim reduction and clustering (so we can play with diff parameters 
 # without waiting for datasets to integrate). 
@@ -193,33 +199,19 @@ rpca_int_sct = FindClusters(rpca_int_sct, resolution = 1.3)
 p1_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka samples") + 
   custom_theme() + miller_discrete_scale(option = 2)
 p2_rpca = DimPlot(rpca_int_sct, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka study") + 
-  custom_theme() + miller_discrete_scale(option = 2)
+  custom_theme() + miller_discrete_scale(option = 2) + theme(legend.position = "none")
 p3_rpca = DimPlot(rpca_int_sct, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("rPCA Alsaigh/Pan/Wirka clusters") + 
   custom_theme() 
 p1_rpca + p2_rpca
 
+# Save plot by study
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2a_rPCA_UMAP_embeddings.png",
+       plot = p2_rpca, width = 10, height = 10)
+
 # Visualize gene expression
 DefaultAssay(rpca_int_sct) = "SCT"
 FeaturePlot(rpca_int_sct ,features = c("CNN1", "ACTA2", "VCAN", "CRTAC1", "FBLN1", 
-                                      "ACTA2"), order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("CNN1", "MYH11", "FHL5", "TPM2"), order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("LMOD1", "TNFRSF11B", "CRTAC1", "COMP", "FBLN1", "VCAM1"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("IL1B", "NKG7", "IL7R", "APOE", "APOC1", "SPP1"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("CCL21", "STEAP4", "FABP4", "TPM2", "NET1", "RERGL"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("CRTAC1", "SPARC", "IBSP", "COL3A1", "TIMP1", "COL1A2"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("C3", "PLA2G2A", "IGSF10", "TMEM119", "ACTA2", "WNT11"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
+                                      "ACTA2"), order = TRUE,  pt.size = 0.2, slot = "data") & miller_continous_scale()
 
 
 # NOTES: Using rPCA yields a better separation between SMC-derived cells and fibroblasts than CCA and Harmony (mostly from Wirka et al)
@@ -273,8 +265,10 @@ harmony_seurat_int =  FindClusters(harmony_seurat_int ,resolution = 1.2) # Resol
 
 # Measure time for benchmark
 end_time_harmony = Sys.time()
-measured_time_harmony = end_time_harmony - start_time_harmony # Time difference of 5.433346 mins
-harmony_running_time = 5.4
+
+# Time difference of 5.433346 mins
+measured_time_harmony = end_time_harmony - start_time_harmony 
+harmony_running_time = measured_time_harmony
 
 # Save rds object
 saveRDS(harmony_seurat_int, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Harmony/harmony_integrated_30dims_clustered_seurat_obj.rds")
@@ -284,20 +278,18 @@ harmony_seurat_int = read_rds("/project/cphg-millerlab/Jose/human_scRNA_meta_ana
 p1_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka samples") + 
   custom_theme() + miller_discrete_scale(option = 2)
 p2_harmony = DimPlot(harmony_seurat_int, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka study") + 
-  custom_theme() + miller_discrete_scale(option = 2)
+  custom_theme() + miller_discrete_scale(option = 2) + theme(legend.position = "none")
 p3_harmony = DimPlot(harmony_seurat_int, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Harmony Alsaigh/Pan/Wirka clusters") + 
   custom_theme() 
 
+# Save plot by study
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2a_Harmony_UMAP_embeddings.png",
+       plot = p2_harmony, width = 10, height = 10)
+
+
 # Plot expression of some representative markers
 FeaturePlot(harmony_seurat_int, features = c("CNN1", "ACTA2", "VCAN", "CRTAC1", "FBLN1", "ACTA2"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(harmony_seurat_int, features = c("IL1B", "NKG7", "IL7R", "APOE", "LYZ", "RERGL"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(harmony_seurat_int ,features = c("CCL21", "STEAP4", "FABP4", "MYH11", "NET1", "RERGL"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-  
+            order = TRUE,  pt.size = 0.2, slot = "data") & miller_continous_scale()
 
 
 # NOTES:Harmony doesn't provide a very well defined separation between putative fibromyocytes/fibrochondrocytes and fibroblasts.
@@ -348,8 +340,10 @@ integrated_corrected_data = scanorama$correct(datasets_full = matrix_list,
 
 # Measure time for benchmark
 end_time_scanorama = Sys.time()
-measured_time_scanorama = end_time_scanorama - start_time_scanorama # Time difference of 82.242552 mins
-scanorama_running_time = 82.2
+
+# Time difference of 82.242552 mins
+measured_time_scanorama = end_time_scanorama - start_time_scanorama 
+scanorama_running_time = measured_time_scanorama
 
 # Save integrated/batch corrected data
 saveRDS(integrated_corrected_data, "/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/Scanorama/Scanorama_integrated_corrected_data.rds")
@@ -412,31 +406,18 @@ scanorama_seurat$study = rpca_int_sct@meta.data$study
 p1_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "sample", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka samples") + 
   custom_theme() + miller_discrete_scale(option = 2)
 p2_scanorama = DimPlot(scanorama_seurat, reduction = "umap", group.by = "study", pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka study") + 
-  custom_theme() + miller_discrete_scale(option = 2)
+  custom_theme() + miller_discrete_scale(option = 2) + theme(legend.position = "none")
 p3_scanorama = DimPlot(scanorama_seurat, reduction = "umap", label = TRUE, repel = TRUE, pt.size = 0.1) + ggtitle("Scanorama Alsaigh/Pan/Wirka clusters") + 
   custom_theme() 
 p1_scanorama + p2_scanorama
 
+# Save plot by study
+ggsave("/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2a_Scanorama_UMAP_embeddings.png",
+       plot = p2_scanorama, width = 10, height = 10)
+
 # Visualize gene expression
 FeaturePlot(scanorama_seurat ,features = c("CNN1", "ACTA2", "VCAN", "CRTAC1", "FBLN1", 
-                                       "NET1"), order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-FeaturePlot(scanorama_seurat ,features = c("CNN1", "MYH11", "FHL5", "TPM2"), order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(scanorama_seurat ,features = c("LMOD1", "KRT17", "CRTAC1", "CLDN5", "FBLN1", "VCAM1"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(scanorama_seurat ,features = c("IL1B", "NKG7", "IL7R", "APOE", "CD79B", "SPP1"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(scanorama_seurat ,features = c("CCL21", "STEAP4", "FABP4", "TPM2", "NET1", "RERGL"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("CRTAC1", "ITLN1", "SCX", "S100A4", "ACTA2", "CLDN5"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
-FeaturePlot(rpca_int_sct ,features = c("C3", "PLA2G2A", "IGSF10", "TMEM119", "ACTA2", "WNT11"), 
-            order = TRUE,  pt.size = 0.2, slot = "data") & new_scale
-
+                                       "NET1"), order = TRUE,  pt.size = 0.2, slot = "data") & miller_continous_scale()
 
 # NOTES: separation between cell types seems decent but clustering quality overall poor. There's also a lack
 # of a substantial number of meaningufl genes like KRT17 or CD79A. 
@@ -453,13 +434,13 @@ int_running_times_df = data.frame(integration_method = c("CCA_MNN", "rPCA", "Har
 int_running_times_df$integration_method = factor(int_running_times_df$integration_method, 
                                                  levels = c("Scanorama", "CCA_MNN", "rPCA", "Harmony"))
 
-running_time_plot = 
-  
-int_running_times_df %>%
+
+# Make running time plot
+running_time_plot = int_running_times_df %>%
   #fct_reorder(integration_method, running_time_minutes) %>%
   ggplot(aes(x=reorder(integration_method, running_time_minutes), 
              y=running_time_minutes, fill=integration_method)) + 
-  geom_col(width = 0.8) + 
+  geom_col(width = 0.6) + 
   xlab("Method") +
   ylab("Running time (mins)") + 
   ggtitle("Running time benchmark for integration of Alsaigh/Pan/Wirka datasets") +  
@@ -469,8 +450,8 @@ int_running_times_df %>%
         axis.text.x = element_text(angle=45, hjust=1),
         legend.position = "none")
 
-ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure1/SuppFig1c_integration_running_time_benchmark.pdf",
-       plot = running_time_plot, width = 8, height = 8)
+ggsave(file="/project/cphg-millerlab/Jose/human_scRNA_meta_analysis/manuscript_figures/Supplementary_Figure2/revision_figures/SuppFig2b_integration_running_time_benchmark.pdf",
+       plot = running_time_plot, width = 3, height = 4)
 
 
 

@@ -14,7 +14,7 @@
 
 # Folder where all the outputs are saved (LD scores, prioritization results files, etc.) 
 # CELLECT-LDSC and CELLECT-MAGMA will write the analysis results into <BASE_OUTPUT_DIR>/CELLECT-LDSC and <BASE_OUTPUT_DIR>/CELLECT-MAGMA subdirectories respectively. The directory and its subdirectories will be created if they do not exist.
-BASE_OUTPUT_DIR: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/CELLECT_outputs
+BASE_OUTPUT_DIR: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/CELLECT_outputs/lesion_status/non_lesion
 
 
 ### SPECIFICITY_INPUT: list of dictionaries
@@ -22,8 +22,8 @@ BASE_OUTPUT_DIR: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_
 # path: the path to the matrix containing specificity scores for each genomic region, does not need to be unique
 # the files can be uncompressed or compressed (gz/bz2 formats are supported).
 SPECIFICITY_INPUT:
-  - id: meta_rpca_expression_specificity
-    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/CELLEX_files/rpca_int_sct_v3_level1_annotations_expression_specificity_Ensembl_IDs_backup.esmu.csv 
+  - id: meta_non_lesion_level1_anno_rpca_expression_specificity
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/rds_objects/integration_rds_objects/rPCA/alsaigh_pan_wirka_hu_int/CELLECT_inputs/Lesion_status/non_lesion/CELLEX_outputs/rpca_non_lesion_sct_v3_level1_annotations_expression_specificity_Ensembl_IDs_backup.esmu.csv 
 
 ### GWAS_SUMSTATS: list of dictionaries
 # id: identifier for GWAS. MUST be unique and NO double underscores allowed
@@ -31,10 +31,20 @@ SPECIFICITY_INPUT:
 GWAS_SUMSTATS:
   - id: CAD_GWAS_van_der_Harst
     path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAD_GWAS_van_der_Harst/CAD_munge_stats.sumstats.gz
+  - id: CAD_MVP_EUR_meta
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAD_GWAS_MVP_EUR/munged_CAD_MVP.sumstats.gz
+  - id: CAC_GWAS
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/CAC_GWAS/munged_CAC.sumstats.gz
   - id: Pulse_pressure_MVP
     path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/pulse_pressure_MVP_GWAS/munged_pulse_pressure_MVP.sumstats.gz
+  - id: Diastolic_blood_pressure_MVP
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/diastolic_blood_pressure_MVP_GWAS/munged_diastolic_blood_pressure_MVP.sumstats.gz
+  - id: Systolic_blood_pressure_MVP
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/systolic_blood_pressure_MVP_GWAS/munged_systolic_blood_pressure_MVP.sumstats.gz
   - id: Myocardial_infarction
     path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/MI_GWAS_Hartiala/munged_MI_Hartiala_meta.sumstats.gz
+  - id: Carotid_IMT
+    path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/Carotid_IMT_GWAS/munged_Carotid_IMT.sumstats.gz
   - id: Carotid_plaque
     path: /project/cphg-millerlab/Jose/human_scRNA_meta_analysis/CELLECT_analyses/munged_GWAS_summary_stats/Carotid_plaque_GWAS/munged_Carotid_plaque.sumstats.gz
   - id: Body_mass_index
